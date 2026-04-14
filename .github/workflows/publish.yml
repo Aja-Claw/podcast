@@ -1,0 +1,68 @@
+name: Publish Podcast
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate RSS
+        run: |
+          python3 << 'PYEOF'
+          import os, datetime, base64
+
+          audio_dir = 'audio'
+          items = []
+          for f in sorted(os.listdir(audio_dir)):
+              if f.endswith(('.mp3', '.m4a', '.wav')):
+                  path = os.path.join(audio_dir, f)
+                  mtime = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+                  size = os.path.getsize(path)
+                  url = f'https://raw.githubusercontent.com/Aja-Claw/podcast/main/{path}'
+                  title = f.replace('.mp3','').replace('.m4a','').replace('.wav','').replace('_',' ')
+                  items.append(f'''
+            <item>
+              <title>{title}</title>
+              <enclosure url="{url}" length="{size}" type="audio/mpeg"/>
+              <guid>{url}</guid>
+              <pubDate>{mtime.strftime("%a, %d %b %Y %H:%M:%S +0000")}</pubDate>
+              <itunes:title>{title}</itunes:title>
+              <itunes:duration>0</itunes:duration>
+            </item>''')
+
+          rss = f'''<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Aja Podcast</title>
+    <link>https://aja-claw.github.io/podcast/</link>
+    <language>zh-cn</language>
+    <itunes:author>Aja</itunes:author>
+    <itunes:image href="https://raw.githubusercontent.com/Aja-Claw/podcast/main/cover.jpg"/>
+    <itunes:summary>每天 AI 生成的播客内容</itunes:summary>
+    <description>每天 AI 生成的播客内容</description>
+    <atom:link href="https://aja-claw.github.io/podcast/rss.xml" rel="self" type="application/rss+xml"/>''' + ''.join(items) + '''
+  </channel>
+</rss>'''
+
+          with open('rss.xml','w') as f:
+              f.write(rss)
+          print(f'Generated RSS with {len(items)} episodes')
+          PYEOF
+
+      - name: Commit RSS
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add rss.xml
+          git diff --cached --quiet || git commit -m "Update RSS feed [skip ci]"
+          git push
