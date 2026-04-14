@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Aja Podcast</title>
+    <link>https://aja-claw.github.io/podcast/</link>
+    <language>zh-cn</language>
+    <itunes:author>Aja</itunes:author>
+    <itunes:image href="https://raw.githubusercontent.com/Aja-Claw/podcast/main/cover.jpg"/>
+    <itunes:summary>每天 AI 生成的播客内容</itunes:summary>
+    <description>每天 AI 生成的播客内容</description>
+    <atom:link href="https://aja-claw.github.io/podcast/rss.xml" rel="self" type="application/rss+xml"/>
+  </channel>
+</rss>
